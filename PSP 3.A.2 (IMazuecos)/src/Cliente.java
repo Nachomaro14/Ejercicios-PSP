@@ -2,16 +2,15 @@ import java.awt.Color;
 import java.awt.event.*;
 import java.io.*;
 import java.net.*;
-import java.util.*;
 import javax.swing.*;
 
-public class ClienteDB extends JFrame implements ActionListener, Runnable{
+public class Cliente extends JFrame implements ActionListener, Runnable{
     private static final long serialVersionUID = 1L;
-    static JTextField depconsultar = new JTextField(2);
-    static JLabel etiqueta = new JLabel("Departamento a consultar:");
+    static JTextField empconsultar = new JTextField(2);
+    static JLabel etiqueta = new JLabel("Empleado a consultar:");
     private JScrollPane scrollpane1;
     static JTextArea textarea1;
-    JButton boton = new JButton("Enviar");
+    JButton boton = new JButton("Consultar");
     JButton desconectar = new JButton("Salir");
     boolean repetir = true;
     static Socket socket;
@@ -19,11 +18,12 @@ public class ClienteDB extends JFrame implements ActionListener, Runnable{
     ObjectInputStream inObjeto;
     DataOutputStream salida;
     
-    public ClienteDB(Socket s){
+    public Cliente(Socket s){
         super("OPERACIONES CON BD");
         socket = s;
         try{
             salida = new DataOutputStream(socket.getOutputStream());
+            inObjeto = new ObjectInputStream(socket.getInputStream());
         }catch(IOException e){
             e.printStackTrace();
             System.exit(0);
@@ -31,8 +31,8 @@ public class ClienteDB extends JFrame implements ActionListener, Runnable{
         setLayout(null);
         etiqueta.setBounds(10, 10, 200, 30);
         add(etiqueta);
-        depconsultar.setBounds(210, 10, 50, 30);
-        add(depconsultar);
+        empconsultar.setBounds(210, 10, 50, 30);
+        add(empconsultar);
         
         textarea1 = new JTextArea();
         scrollpane1 = new JScrollPane(textarea1);
@@ -52,7 +52,7 @@ public class ClienteDB extends JFrame implements ActionListener, Runnable{
     public void actionPerformed(ActionEvent e){
         if(e.getSource() == boton){
             try{
-                salida.writeUTF(depconsultar.getText());
+                salida.writeUTF(empconsultar.getText());
             }catch(IOException e1){
                 e1.printStackTrace();
             }
@@ -72,17 +72,18 @@ public class ClienteDB extends JFrame implements ActionListener, Runnable{
         String texto = "";
         while(repetir){
             try{
-                Departamentos d = null;
-                d = (Departamentos) inObjeto.readObject();
+                Empleados e = (Empleados) inObjeto.readObject();
                 textarea1.setText("");
                 textarea1.setForeground(Color.blue);
-                if(d == null){
+                if(e == null){
                     textarea1.setForeground(Color.red);
-                    PintaMensaje("      <<EL DEPARTAMENTO NO EXISTE>>");
+                    PintaMensaje("<<EL EMPLEADO NO EXISTE>>");
                 }else{
-                    texto = "Número Dep: " + d.getDeptNo() + "\n    " + " Nombre: " + d.getDnombre() + "\tLocalidad: " + d.getLoc();
+                    texto = "Empleado: " + e.getEmpNo() + "\n   " + "Oficio: " + e.getOficio() + "\tApellido: " + e.getApellido() +
+                            "\n    " + "Comisión: " + e.getComision() + "\tDirección: " + e.getDir() + "\n    " +
+                            "Alta: " + e.getFechaAlt() + "\tSalario: " + e.getSalario() +
+                            "\n    " + "Departamento: " + e.getDepartamentos().getDnombre();
                     textarea1.append(texto);
-                    PintarEmpleados(d);
                 }
             }catch(SocketException s){
                 repetir = false;
@@ -102,24 +103,6 @@ public class ClienteDB extends JFrame implements ActionListener, Runnable{
         }
     }
     
-    private void PintarEmpleados(Departamentos d){
-        Set<Empleados> listaemple = d.getEmpleadoses();
-        
-        textarea1.setForeground(Color.blue);
-        if(listaemple == null){
-            PintaMensaje("EL DEPARTAMENTO NO TIENE EMPLEADOS");
-        }else{
-            PintaMensaje("EMPLEADOS DEL DEPARTAMENTO: " + listaemple.size());
-            Iterator<Empleados> it = listaemple.iterator();
-            while(it.hasNext()){
-                Empleados emple = new Empleados();
-                emple = it.next();
-                textarea1.append("\n" + emple.getEmpNo() + " * " + emple.getApellido() + " * " + emple.getOficio() + " * " + emple.getSalario());
-            }
-            textarea1.append("\n============================================");
-        }
-    }
-    
     public void PintaMensaje(String mensaje){
        textarea1.append("\n============================================");
        textarea1.append("\n" + mensaje);
@@ -128,8 +111,8 @@ public class ClienteDB extends JFrame implements ActionListener, Runnable{
     
     public static void main(String args[]) throws UnknownHostException, IOException{
         int puerto = 44441;
-        Socket s = new Socket("192.168.1.39", puerto);
-        ClienteDB hiloC = new ClienteDB(s);
+        Socket s = new Socket("localhost", puerto);
+        Cliente hiloC = new Cliente(s);
         hiloC.setBounds(0, 0, 540, 400);
         hiloC.setVisible(true);
         new Thread(hiloC).start();
