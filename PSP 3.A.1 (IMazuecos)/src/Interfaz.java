@@ -7,7 +7,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
 public class Interfaz extends javax.swing.JFrame {
-
+    static int puerto = 44441;
+    static Socket socket = null;
     static ObjectOutputStream outObjeto;
 
     public Interfaz() {
@@ -124,18 +125,6 @@ public class Interfaz extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAltaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAltaActionPerformed
-        int puerto = 44441;
-        Socket socket = null;
-        boolean b = true;
-        while(b){
-            try {
-                socket = new Socket("localhost", puerto);
-                b = false;
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-        
         try{
             outObjeto = new ObjectOutputStream(socket.getOutputStream());
         }catch(IOException e){
@@ -150,9 +139,6 @@ public class Interfaz extends javax.swing.JFrame {
                 String localidad = txtLocalidad.getText();
                 Departamentos nuevoDep = new Departamentos(numeroDep, nombre, localidad);
                 outObjeto.writeObject(nuevoDep);
-                
-                Cliente hiloC = new Cliente();
-                hiloC.run();
             }catch(Exception e){
                 JOptionPane.showMessageDialog(null, "ERROR: \n" + e.getMessage());
                 e.printStackTrace();
@@ -177,6 +163,13 @@ public class Interfaz extends javax.swing.JFrame {
                 i.setVisible(true);
             }
         });
+        try {
+            socket = new Socket("localhost", puerto);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        Cliente hiloC = new Cliente();
+        hiloC.run();
     }
     
     public static void SCifras(JTextField a) {

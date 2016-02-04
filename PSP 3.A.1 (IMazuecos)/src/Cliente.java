@@ -9,14 +9,11 @@ public class Cliente implements Runnable{
     boolean repetir = true;
     static Socket socket;
     
-    ObjectInputStream inObjeto;
-    
     public void run(){
         while(repetir){
             try{
-                inObjeto = new ObjectInputStream(socket.getInputStream());
-                Departamentos d = null;
-                d = (Departamentos) inObjeto.readObject();
+                ObjectInputStream inObjeto = new ObjectInputStream(socket.getInputStream());
+                Departamentos d = (Departamentos) inObjeto.readObject();
                 if(d == null){
                     JOptionPane.showMessageDialog(null, "El Departamento no ha sido recibido correctamente");
                 }else{
@@ -25,10 +22,17 @@ public class Cliente implements Runnable{
                 }
             }catch(SocketException s){
                 repetir = false;
+                JOptionPane.showMessageDialog(null, "ERROR DE SOCKET");
             }catch(IOException e){
+                JOptionPane.showMessageDialog(null, "ERROR DE IO");
                 e.printStackTrace();
                 repetir = false;
             }catch(ClassNotFoundException e){
+                JOptionPane.showMessageDialog(null, "ERROR DE CLASE");
+                e.printStackTrace();
+                repetir = false;
+            }catch(NullPointerException e){
+                JOptionPane.showMessageDialog(null, "ERROR DE VALOR NULO");
                 e.printStackTrace();
                 repetir = false;
             }
